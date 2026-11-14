@@ -1,0 +1,44 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "LICENSE", ".gitignore"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build universal app
+        run: ARCHS="arm64 x86_64" bash build.sh
+
+      - name: Check the binary
+        run: |
+          lipo -info build/Frostfall.app/Contents/MacOS/Frostfall
+          codesign --verify --verbose build/Frostfall.app
+
+      - name: Smoke test (launch for a few seconds)
+        run: |
+          build/Frostfall.app/Contents/MacOS/Frostfall &
+          PID=$!
+          sleep 8
+          if kill -0 "$PID" 2>/dev/null; then echo "still running"; kill "$PID"; else echo "app exited early"; exit 1; fi
+
+      - name: Zip
+        run: ditto -c -k --keepParent build/Frostfall.app Frostfall.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Frostfall
+          path: Frostfall.zip
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v1.0.${{ github.run_number }}" Frostfall.zip --title "Frostfall 1.0.${{ github.run_number }}" --notes "Unzip and open Frostfall.app. It is not notarised, so on first launch allow it under System Settings > Privacy and Security > Open Anyway."
