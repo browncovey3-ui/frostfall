@@ -46,6 +46,7 @@ final class SnowScene: SKScene {
     private var lastPoll: TimeInterval = 0
     private var lastWindowMotion: TimeInterval = 0
     private var lastMouse: CGPoint?
+    private var flakeScale: CGFloat = 1
 
     private let maxDebris = 900
 
@@ -110,10 +111,22 @@ final class SnowScene: SKScene {
         }
     }
 
+    /// Resizes the flakes already on screen when the size slider moves.
+    private func applyFlakeScale(_ scale: CGFloat) {
+        guard abs(scale - flakeScale) > 0.001 else { return }
+        let ratio = scale / flakeScale
+        flakeScale = scale
+        for idx in flakes.indices {
+            flakes[idx].size *= ratio
+            let side = flakes[idx].size * 2
+            flakes[idx].node.size = CGSize(width: side, height: side)
+        }
+    }
+
     private func respawn(_ f: inout Flake, anywhere: Bool) {
         let raw = CGFloat.random(in: 0...1)
         let d = raw * raw // most flakes are small and far away
-        f.size = 1.6 + d * 4.2
+        f.size = (1.6 + d * 4.2) * flakeScale
         f.vy = 28 + d * 75 + CGFloat.random(in: 0...12)
         f.x = CGFloat.random(in: 0...max(1, size.width))
         f.y = anywhere ? CGFloat.random(in: 0...max(1, size.height))
@@ -154,6 +167,7 @@ final class SnowScene: SKScene {
         let s = Settings.shared
         root.alpha = max(0.1, min(1, s.opacity))
         ensureGround()
+        applyFlakeScale(s.flakeScale)
         syncFlakeCount()
 
         if s.settleOnWindows {
