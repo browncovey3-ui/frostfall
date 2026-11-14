@@ -134,6 +134,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         menu.addItem(sliderItem(title: "Intensity", value: s.double(.intensity), min: 0,
                                 action: #selector(intensityChanged(_:))))
+        menu.addItem(sliderItem(title: "Flake Size", value: s.double(.flakeSize), min: 0,
+                                action: #selector(flakeSizeChanged(_:))))
         menu.addItem(sliderItem(title: "Opacity", value: s.double(.opacity), min: 0.15,
                                 action: #selector(opacityChanged(_:))))
         menu.addItem(NSMenuItem.separator())
@@ -201,6 +203,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func intensityChanged(_ sender: NSSlider) {
         Settings.shared.set(sender.doubleValue, for: .intensity)
+    }
+
+    @objc private func flakeSizeChanged(_ sender: NSSlider) {
+        Settings.shared.set(sender.doubleValue, for: .flakeSize)
     }
 
     @objc private func opacityChanged(_ sender: NSSlider) {
