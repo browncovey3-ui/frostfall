@@ -6,7 +6,7 @@ final class Settings {
     static let changed = Notification.Name("FrostfallSettingsChanged")
 
     enum Key: String {
-        case intensity, opacity
+        case intensity, opacity, flakeSize
         case settleOnGround, settleOnWindows, melt
         case behindWindows, overFullScreen, showInScreenshots, paused
     }
@@ -19,6 +19,7 @@ final class Settings {
         defaults.register(defaults: [
             Key.intensity.rawValue: 0.4,
             Key.opacity.rawValue: 0.9,
+            Key.flakeSize.rawValue: 0.5,
             Key.settleOnGround.rawValue: true,
             Key.settleOnWindows.rawValue: true,
             Key.melt.rawValue: false,
@@ -27,7 +28,7 @@ final class Settings {
             Key.showInScreenshots.rawValue: false,
             Key.paused.rawValue: false,
         ])
-        for k in [Key.intensity, .opacity] {
+        for k in [Key.intensity, .opacity, .flakeSize] {
             doubles[k] = defaults.double(forKey: k.rawValue)
         }
         for k in [Key.settleOnGround, .settleOnWindows, .melt, .behindWindows,
@@ -53,6 +54,8 @@ final class Settings {
 
     var intensity: CGFloat { CGFloat(double(.intensity)) }
     var opacity: CGFloat { CGFloat(double(.opacity)) }
+    /// Multiplier on flake size: 1 at the slider midpoint, 0.4 to 2.5 at the ends.
+    var flakeScale: CGFloat { CGFloat(pow(2.5, (double(.flakeSize) - 0.5) * 2)) }
     var settleOnGround: Bool { bool(.settleOnGround) }
     var settleOnWindows: Bool { bool(.settleOnWindows) }
     var melt: Bool { bool(.melt) }
